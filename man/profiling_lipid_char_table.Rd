@@ -11,7 +11,7 @@ of plasma sphingolipids with subphenotypes of COPD, including airflow
 obstruction, emphysema, and frequent exacerbations.
 }
 \usage{data("profiling_lipid_char_table")}
-\format{
+\value{
   A data frame with 208 observations on the following 10 variables.
   \describe{
     \item{\code{feature}}{a character vector}

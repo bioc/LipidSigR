@@ -13,7 +13,7 @@ were used to predict 228 cancer cell lines with a label of 0 (sensitive) or 1
 (resistant) by a binary classifier.
 }
 \usage{data("ML_exp_data")}
-\format{
+\value{
   A data frame with 89 observations on the following 229 variables.
   \describe{
     \item{\code{feature}}{a character vector}

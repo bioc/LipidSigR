@@ -10,7 +10,7 @@ workflow. A table of desired clinical terms (i.e., clinical subphenotypes of
 chronic obstructive pulmonary disease).
 }
 \usage{data("corr_condition_table")}
-\format{
+\value{
   A data frame with 129 observations on the following 4 variables.
   \describe{
     \item{\code{sample_name}}{a character vector}

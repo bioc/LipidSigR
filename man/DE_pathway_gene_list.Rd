@@ -9,7 +9,7 @@ A list that comprises the genes included in each pathway for compiling the
 significant network of the selected lipid class.
 }
 \usage{data("DE_pathway_gene_list")}
-\format{
+\value{
   The format is:
 List of 307
  $ hsa:00010: chr [1:68] "ENTREZID:10327" "ENTREZID:124" "ENTREZID:125" ...

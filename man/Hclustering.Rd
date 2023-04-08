@@ -63,7 +63,7 @@ lipid species or characteristics, and 'sig' for output the results of
 significant lipid species or characteristics.}
 }
 \value{
-Return a list with a figures and a matrix.
+Return a list with 1 figure and 1 matrix.
 \enumerate{
 \item heatmap: a heatmap provides an overview of all/significant lipid
 species or characteristics that illustrates the differences

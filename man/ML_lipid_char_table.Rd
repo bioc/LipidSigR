@@ -12,7 +12,7 @@ into sensitive or resistant to SCD gene knockout evenly based on gene dependency
 scores (CERES).
 }
 \usage{data("ML_lipid_char_table")}
-\format{
+\value{
   A data frame with 89 observations on the following 6 variables.
   \describe{
     \item{\code{feature}}{a character vector}

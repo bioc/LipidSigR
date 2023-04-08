@@ -12,7 +12,7 @@ Human plasma lipidome from 10 healthy controls and 13 patients with systolic
 heart failure (HFrEF) were analyzed by MS-based shotgun lipidomics.
 }
 \usage{data("profiling_exp_data")}
-\format{
+\value{
   A data frame with 208 observations on the following 24 variables.
   \describe{
     \item{\code{feature}}{a character vector}

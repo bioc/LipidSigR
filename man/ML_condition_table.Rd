@@ -10,7 +10,7 @@ analysis workflow. A selected clinical term (or one set of clinical terms) from
 demographic data with an assigned group number 0 or 1 to each sample.
 }
 \usage{data("ML_condition_table")}
-\format{
+\value{
   A data frame with 228 observations on the following 2 variables.
   \describe{
     \item{\code{sample_name}}{a character vector}

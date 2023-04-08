@@ -8,7 +8,7 @@ DE_lipid_gene_path
 A data frame of pathway information.
 }
 \usage{data("DE_lipid_gene_path")}
-\format{
+\value{
   A data frame with 28148 observations on the following 10 variables.
   \describe{
     \item{\code{key_name}}{a character vector}

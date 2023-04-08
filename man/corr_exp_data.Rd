@@ -12,7 +12,7 @@ obstruction, emphysema, and frequent exacerbations. The dataset contained 129
 current and former smokers.
 }
 \usage{data("corr_exp_data")}
-\format{
+\value{
   A data frame with 69 observations on the following 130 variables.
   \describe{
     \item{\code{feature}}{a character vector}

@@ -13,7 +13,7 @@ left Ventricular failure. Human plasma lipidome from 10 healthy controls and
 shotgun lipidomics.
 }
 \usage{data("DE_exp_data")}
-\format{
+\value{
   A data frame with 208 observations on the following 24 variables.
   \describe{
     \item{\code{feature}}{a character vector}

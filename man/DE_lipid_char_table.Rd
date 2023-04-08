@@ -11,7 +11,7 @@ adipose tissue ATGL modifies the cardiac lipidome in pressure-overload-induced
 left Ventricular failure.
 }
 \usage{data("DE_lipid_char_table")}
-\format{
+\value{
   A data frame with 208 observations on the following 10 variables.
   \describe{
     \item{\code{feature}}{a character vector}

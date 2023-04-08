@@ -10,7 +10,7 @@ correlation analysis workflow. Clinical terms for correcting in linear
 regression or logistic regression analysis.
 }
 \usage{data("corr_adjusted_table")}
-\format{
+\value{
   A data frame with 129 observations on the following 6 variables.
   \describe{
     \item{\code{sample_name}}{a character vector}
