@@ -12,7 +12,7 @@ while 13 patients with systolic heart failure (HFrEF) are considered as
 the experiment group.
 }
 \usage{data("DE_group_info")}
-\format{
+\value{
   A data frame with 23 observations on the following 4 variables.
   \describe{
     \item{\code{sample_name}}{a character vector, name of each sample.}
