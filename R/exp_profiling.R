@@ -1,78 +1,48 @@
 #' @title exp_profiling
-#' @description This function three types of distribution plots for users to a
-#' simple view of sample variability, and compare the amount/expression
-#' difference of lipid between samples (i.e., patients vs. control).
+#' @description This function provides a simple view of sample variability, and
+#' compare the amount/expression difference of lipid between samples (i.e.,
+#' patients vs. control). The returned tables can be further applied for
+#' plotting.
+#' @param exp_data_SE A SummarizedExperiment object contains information about
+#' various features, such as molecules, lipid class, etc., and their
+#' expression levels for each sample. The assay is a matrix representing the
+#' expression of lipid features across all samples. Missing values (NAs)  are
+#' allowed. The row data  corresponds to specific lipid features, such as class
+#' and total length. The first column's name must be "feature" (lipid species),
+#' and NAs are allowed for this data. The column data comprises sample names,
+#' sample labels, group names, and pair numbers that represent 'the pair' for
+#' conducting t-tests or Wilcoxon tests. NAs are allowed.
+#' @param char_var A character string of the first lipid characteristic
+#' selected by users from the column name of the rowData of \bold{exp_data_SE},
+#' such as total length.
+#' @return Return a list with 3 SummarizedExperiment objects.
 #' \enumerate{
-#' \item The first histogram depicts the numbers of lipids expressed in
+#' \item tot.num.lip: number of expressed lipids and total amount of lipid in
 #' each sample.
-#' \item The second histogram illustrates the total amount of lipid in
-#' each sample.
-#' \item The last density plot visualizes the underlying
-#' probability distribution of the lipid expression in each sample (line).
-#' }
-#' @param exp_data A data frame of predictors, including
-#' features (molecule, lipid class, etc.) and their expression of each sample.
-#' NAs are not allowed. The name of the first column must be
-#' "feature" (lipid species).
-#' @param plotly Logical value. If TRUE, return the resulting plots dynamically.
-#' @return Return 3 plots.
-#' \enumerate{
-#' \item histogram of number of expressed lipids.
-#' \item histogram of the total amount of lipid in each sample.
-#' \item density plot of the underlying probability distribution of the
-#' lipid expression in each sample.
+#' \item dens.lip: the underlying probability distribution of the lipid
+#' expression in each sample.
+#' \item exp.compo.by.lipid: the expression level of each sample within each
+#' group (e.g., PE, PC) of selected characteristics (e.g., class).
 #' }
 #' @export
 #' @examples
-#' data("profiling_exp_data")
-#' exp_data <- profiling_exp_data
-#' exp_profiling(exp_data, plotly=TRUE)
-exp_profiling <- function(exp_data, plotly=TRUE){
+#' library(dplyr)
+#' library(SummarizedExperiment)
+#' data("profiling_data")
+#' exp_data_SE <- profiling_data
+#' lipid_char_table <- as.data.frame(rowData(exp_data_SE))
+#' char_var <- colnames(lipid_char_table)[-1]
+#' exp_profiling(exp_data_SE, char_var[1])
+exp_profiling <- function(exp_data_SE, char_var=NULL){
+  exp_data <- cbind(SummarizedExperiment::rowData(exp_data_SE)[[1]],
+                    as.data.frame(SummarizedExperiment::assay(exp_data_SE)))
+  colnames(exp_data) <- c("feature",
+                          SummarizedExperiment::colData(exp_data_SE)[[1]])
+  lipid_char_table <- as.data.frame(SummarizedExperiment::rowData(exp_data_SE))
 
-  exp_data <- as.data.frame(exp_data)
-  ################################################
-  ####                                        ####
-  #### PLOT: total expressed lipid by samples ####
-  ####                                        ####
-  ################################################
-
-  if(!is(exp_data[, 1], 'character')){
-    stop("The first column must contain a list of lipids names (features)")
-  }
-  if(ncol(exp_data) == 2){
-    if(!is(exp_data[, 1], 'character') |
-       sum(class(exp_data[, -1]) %in% c("numeric", "integer")) != 1){
-      stop("First column type must be 'character',others must be 'numeric'")
-    }
-  }else{
-    if(!is(exp_data[,1], 'character') |
-       sum(vapply(exp_data[, -1], class, character(1)) %in%
-           c("numeric", "integer")) != ncol(exp_data[, -1])){
-      stop("First column type must be 'character',others must be 'numeric'")
-    }
-  }
-  if(tibble::is_tibble(exp_data)){
-    if(nrow(exp_data) != nrow(unique(exp_data[, 1]))){
-      stop("The lipids name (features) must be unique")
-    }
-  }else{
-    if(nrow(exp_data) != length(unique(exp_data[, 1]))){
-      stop("The lipids name (features) must be unique")
-    }
-  }
-  if(ncol(exp_data) < 3){
-    stop("At least 2 samples.")
-  }
-  if(sum(exp_data[, -1] < 0, na.rm=TRUE) > 0){
-    stop("Variable must greater than zero")
-  }
-  if(sum(!is.na(exp_data[, -1])) == 0 |
-     sum(!is.null(exp_data[, -1])) == 0){
-    stop("Variables can not be all NULL/NA")
-  }
-  ## Count total expressed lipids ##
-  num.lip <- exp_data %>%
-    tidyr::gather(sample_name, value, -feature) %>%
+   exp_trans_data <- exp_data %>%
+    tidyr::gather(sample_name, value, -feature)
+  num.lip <- exp_trans_data %>%
     dplyr::mutate(is.expr=!is.na(value)) %>%
     dplyr::group_by(sample_name) %>%
     dplyr::summarise(expr.count=sum(is.expr)) %>%
@@ -80,168 +50,118 @@ exp_profiling <- function(exp_data, plotly=TRUE){
   num.lip$sample_name <- factor(
     num.lip$sample_name, levels=unique(num.lip$sample_name)[order(
       num.lip$expr.count, decreasing=TRUE)])
-
-  ## plot barplot ##
-  if(plotly == TRUE){
-    i.expr.lip <- plotly::plot_ly(num.lip, x=~sample_name, y=~expr.count,
-                                  type="bar", color=~sample_name,
-                                  hoverinfo="text",
-                                  text=~paste("Sample name :", sample_name,
-                                              "\nCount :", expr.count)) %>%
-      plotly::layout(legend=list(title=list(text="Sample"),
-                                 font=list(family='arial')),
-                     xaxis=list(titlefont=list(family='arial'),
-                                tickfont=list(family='arial'),
-                                automargin=TRUE,
-                                showgrid=FALSE),
-                     yaxis=list(title="Number of Expressed Lipids",
-                                titlefont=list(family='arial'),
-                                tickfont=list(family='arial'),
-                                automargin=TRUE,
-                                showgrid=FALSE))
-  }else{
-    i.expr.lip <- ggplot2::ggplot(num.lip,
-                                  ggplot2::aes(x=sample_name,
-                                               y=expr.count,
-                                               fill=sample_name)) +
-      ggplot2::geom_col() +
-      ggplot2::labs(fill='Sample',
-                    y='Number of Expressed Lipids',
-                    x="") +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
-                                                         vjust = 0.5,
-                                                hjust=1)) +
-      ggthemes::theme_hc()
-  }
-
-  #############################################
-  ####                                     ####
-  #### PLOT: total lipid amount of samples ####
-  ####                                     ####
-  #############################################
-  tot.lip <- exp_data %>%
-    tidyr::gather(sample_name,value,-feature) %>%
+  tot.lip <- exp_trans_data %>%
     dplyr::group_by(sample_name) %>%
     dplyr::summarise(lipid_amount=sum(value, na.rm=TRUE))
   tot.lip$sample_name <- factor(
     tot.lip$sample_name, levels=unique(tot.lip$sample_name)[order(
       tot.lip$lipid_amount, decreasing=TRUE)])
-
-  ## plot barplot ##
-  if(plotly == TRUE){
-    i.p.amount <- plotly::plot_ly(tot.lip, x=~sample_name, y=~lipid_amount,
-                                  type="bar", color=~sample_name,
-                                  hoverinfo="text",
-                                  text=~paste("Sample name :",
-                                              sample_name,
-                                              "\nAmount :",
-                                              round(lipid_amount,3))) %>%
-      plotly::layout(legend=list(title=list(text="Sample"),
-                                 font=list(family='arial')),
-                     xaxis=list(titlefont=list(family='arial'),
-                                tickfont=list(family='arial'),
-                                automargin=TRUE,
-                                showgrid=FALSE),
-                     yaxis=list(title="Lipid Amount",
-                                titlefont=list(family='arial'),
-                                tickfont=list(family='arial'),
-                                automargin=TRUE,
-                                showgrid=FALSE))
-  }else{
-    i.p.amount <- ggplot2::ggplot(tot.lip,
-                    ggplot2::aes(x=sample_name,
-                                 y=lipid_amount,
-                                 fill=sample_name)) +
-      ggplot2::geom_col() +
-      ggplot2::labs(fill='Sample',
-                    y='Lipid Amount',
-                    x="") +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
-                                                         vjust = 0.5,
-                                                hjust=1)) +
-      ggthemes::theme_hc()
-  }
-
-  #################################################
-  ####                                         ####
-  #### PLOT: hist of quantification per sample ####
-  ####                                         ####
-  #################################################
-  p.hist.data <- exp_data %>%
-    tidyr::gather(sample_name, value, -feature)
-  p.hist.data <- stats::na.omit(p.hist.data)
-  if(plotly == TRUE){
-    length_sample <- length(unique(p.hist.data$sample_name))
-    for (i in seq_len(length_sample)) {
-      if(i==1){
-        density_sample <- p.hist.data[which(
-          p.hist.data$sample_name == unique(p.hist.data$sample_name)[i]), ]
-        density_data_x <- data.frame(stats::density(log10(
-          density_sample$value))$x)
-        density_data_y <- data.frame(stats::density(log10(
-          density_sample$value))$y)
-      }else{
-        density_sample <- p.hist.data[which(
-          p.hist.data$sample_name == unique(p.hist.data$sample_name)[i]), ]
-        density_data_x <- data.frame(density_data_x,stats::density(log10(
-          density_sample$value))$x)
-        density_data_y <- data.frame(density_data_y,stats::density(log10(
-          density_sample$value))$y)
+  dens.lip <- stats::na.omit(exp_trans_data)
+  if(!is.null(lipid_char_table)){
+    lipid_char_table <- as.data.frame(lipid_char_table)
+    if(ncol(dplyr::select(lipid_char_table,
+                          tidyselect::starts_with("FA_"))) == 0){
+      warning("(OPTIONAL) lipid_char_table does not contain column names
+            starting with 'FA_'")
+    }else{
+      FA_lipid_char_table <- lipid_char_table %>%
+        dplyr::select(feature, tidyselect::starts_with("FA_"))
+      FA_col <- grep("FA_", colnames(FA_lipid_char_table), value=TRUE)
+      max_comma <- 0
+      for(i in seq_len(length(FA_col))){
+        col <- FA_col[i]
+        comma_count <- max(stringr::str_count(FA_lipid_char_table[, col],
+                                              ','), na.rm=TRUE)
+        if(comma_count > 0){
+          FA_lipid_char_table <- FA_lipid_char_table %>%
+            tidyr::separate(col, c(col, paste0(col, "_", seq_len(comma_count))),
+                            ",", convert=TRUE)
+        }
+        if(comma_count > max_comma){max_comma <- comma_count}
+      }
+      FA_lipid_char_table <- FA_lipid_char_table %>%
+        tidyr::gather(lipid.category, lipid.category.value, -feature)
+      if(max_comma > 0){
+        for (i in seq_len(max_comma)) {
+          select_name <- paste0("_", i)
+          FA_lipid_char_table <-FA_lipid_char_table[-intersect(grep(
+            select_name, FA_lipid_char_table[, "lipid.category"]),
+            which(is.na(FA_lipid_char_table$lipid.category.value))),]
+        }
+      }
+      if(methods::is(FA_lipid_char_table$lipid.category.value, 'character')){
+        stop("In the 'FA_' related analyses, the values are positive integer or
+           zero and separated by comma. i.e., 10,12,11")
+      }else if(sum(
+        stats::na.omit(as.numeric(FA_lipid_char_table$lipid.category.value)) !=
+        round(stats::na.omit(
+          as.numeric(FA_lipid_char_table$lipid.category.value)))) != 0 |
+        min(stats::na.omit(
+          as.numeric(FA_lipid_char_table$lipid.category.value))) < 0){
+        stop("In the 'FA_' related analyses, the values are positive integer or
+           zero and separated by comma. i.e., 10,12,11")
       }
     }
-    colnames(density_data_x) <- paste0("x", seq_len(length_sample))
-    colnames(density_data_y) <- paste0("y", seq_len(length_sample))
-    density_data <- cbind(density_data_x, density_data_y)
-    ## plot densityplot ##
-    for (i in seq_len(length_sample)) {
-      if(i == 1){
-        p.hist.value <- plotly::plot_ly(
-          data=density_data,
-          x=~x1,
-          y=~y1,
-          type='scatter',
-          mode='lines',
-          name=unique(p.hist.data$sample_name)[1],
-          hoverinfo="text",
-          text=~paste("Sample name :",
-                      unique(p.hist.data$sample_name)[1],
-                      "\nlog10(expression) :",
-                      round(x1, 3),
-                      "\nDensity :",
-                      round(y1, 3)))
-      }else{
-        text <- paste0(
-          "p.hist.value %>% plotly::add_trace(x = ~x",
-          i,
-          ",",
-          "y = ~y", i,
-          ",name = unique(p.hist.data$sample_name)[", i,
-          "],text=~paste(\"Sample name :\",unique(p.hist.data$sample_name)[",
-          i,  "],\"\nlog10(expression) :\",round(x", i,
-          ",3),\"\nDensity :\",round(y", i, ",3)))")
-        p.hist.value <- eval(parse(text=text))
+    FA_col <- grep("FA_", colnames(lipid_char_table), value=TRUE)
+    if(length(FA_col) > 0){
+      max_comma <- 0
+      for(i in seq_len(length(FA_col))){
+        col <- FA_col[i]
+        comma_count <- max(stringr::str_count(lipid_char_table[, col],
+                                              ','), na.rm=TRUE)
+        if(comma_count > 0){
+          lipid_char_table <- lipid_char_table %>%
+            tidyr::separate(col, c(col, paste0(col, "_", seq_len(comma_count))))
+        }
+        if(comma_count > max_comma){max_comma <- comma_count}
       }
+      lipid_char_table <- lipid_char_table %>%
+        tidyr::gather(lipid.category, lipid.category.value, -feature)
+      if(max_comma > 0){
+        for (i in seq_len(max_comma)) {
+          select_name <- paste0("_",i)
+          lipid_char_table <-lipid_char_table[-intersect(grep(
+            select_name, lipid_char_table[,"lipid.category"]),
+            which(is.na(lipid_char_table$lipid.category.value))),]
+        }
+        for(i in seq_len(length(FA_col))){
+          col <- FA_col[i]
+          lipid_char_table[grep(col,
+                                lipid_char_table[, "lipid.category"]),
+                           "lipid.category"] <- col
+        }
+      }
+    }else{
+      lipid_char_table <- lipid_char_table %>%
+        tidyr::gather(lipid.category, lipid.category.value, -feature)
     }
-    p.hist.value <- p.hist.value %>%
-      plotly::layout(legend=list(title=list(text="Sample")),
-                     xaxis=list(title="log10(expression)", zeroline= FALSE,
-                                showgrid=FALSE),
-                     yaxis=list(title="Density", showgrid=FALSE))
+    exp.compo.by.lipid <- merge(exp_data %>%
+                                  tidyr::gather(sample_name, value, -feature),
+                                lipid_char_table, by="feature") %>%
+      dplyr::filter(lipid.category == char_var &
+                      !is.na(lipid.category.value)) %>%
+      dplyr::group_by(sample_name, lipid.category, lipid.category.value) %>%
+      dplyr::summarise(value=sum(value, na.rm=TRUE)) %>%
+      plotly::ungroup() %>%
+      dplyr::group_by(sample_name) %>%
+      dplyr::mutate(weight=100/sum(value)) %>%
+      dplyr::mutate(value=value*weight)%>%
+      plotly::ungroup()
   }else{
-    p.hist.value <- ggplot2::ggplot(p.hist.data,
-                                    ggplot2::aes(x=log10(value),
-                                                 color=sample_name)) +
-      ggplot2::geom_density() +
-      ggplot2::labs(color='Sample',
-                    y='Density',
-                    x="log10(expression)") +
-      ggthemes::theme_hc()
+    exp.compo.by.lipid = NULL
   }
 
+  tot.num.lip <- merge(x = num.lip, y = tot.lip, by = "sample_name", all = TRUE)
 
-  return(list(i.expr.lip=i.expr.lip,
-              i.p.amount=i.p.amount,
-              p.hist.value=p.hist.value))
+  tot.num.lip_SE <- SummarizedExperiment::SummarizedExperiment(
+    assays=list(tot.num.lip=tot.num.lip))
+
+  dens.lip_SE <- SummarizedExperiment::SummarizedExperiment(
+    assays=list(dens.lip=dens.lip))
+
+  exp.compo.by.lipid_SE <- SummarizedExperiment::SummarizedExperiment(
+    assays=list(exp.compo.by.lipid=exp.compo.by.lipid))
+
+  return(list(tot.num.lip=tot.num.lip_SE, dens.lip=dens.lip_SE,
+              exp.compo.by.lipid=exp.compo.by.lipid_SE))
 }
-
-
