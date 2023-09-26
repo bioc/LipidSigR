@@ -2,7 +2,7 @@ Package: LipidSigR
 Type: Package
 Title: A comprehensive analysis for streamlined data mining of
         lipidomic data
-Version: 0.99.28
+Version: 0.99.29
 Authors@R: c(
     person("Wei-Chung", "Cheng", email="chenglabomics@gmail.com", 
     role = c("aut","cre","cph"), comment = c(ORCID = "0000-0002-1229-4857")),
@@ -30,23 +30,14 @@ Encoding: UTF-8
 LazyData: FALSE
 RoxygenNote: 7.2.3
 biocViews: Lipidomics, GeneExpression, Classification, Clustering
-Depends: R (>= 4.2.0)
+Depends: R (>= 4.3.0)
 Imports: plotly (>= 4.9.4.1), dplyr, tidyselect, stringr, magrittr,
-        tidyr, forcats, tibble, stats, SummarizedExperiment,
+        tidyr, forcats, tibble, stats, SummarizedExperiment
 Suggests: devtools, roxygen2, knitr, methods, purrr,BiocStyle,
-        testthat (>= 3.0.0),
+        testthat (>= 3.0.0), cluster, foreign, nnet, rpart
 Enhances: data.table, ggforce, ggpubr, ggrepel,
         showimage, rlang (>= 0.4.11), heatmaply, ggplot2,
         tidyverse, parsnip, ggbeeswarm, 
         wordcloud, ggthemes, mixOmics, Rtsne, uwot, grDevices, Hmisc
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-NeedsCompilation: no
-Packaged: 2023-09-26 12:24:46 UTC; tiffany
-Author: Wei-Chung Cheng [aut, cre, cph]
-    (<https://orcid.org/0000-0002-1229-4857>),
-  Wen-Jen Lin [aut, ctb],
-  Pei-Chun Shen [ctb],
-  Hsiu-Cheng Liu [ctb],
-  Meng-Hsin Tsai [ctb]
-Maintainer: Wei-Chung Cheng <chenglabomics@gmail.com>
