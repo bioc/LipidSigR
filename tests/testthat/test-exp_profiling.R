@@ -1,16 +1,17 @@
-# Load data and create example data sets
-data(profiling_exp_data)
+## Load data and create example data sets
+data(profiling_data)
+lipid_char_table <- as.data.frame(
+    SummarizedExperiment::rowData(profiling_data))
+char_var <- colnames(lipid_char_table)[-1]
 
-# Start tests
+## Start tests
 test_that("exp_profiling function works.", {
-  expect_s3_class(profiling_exp_data, "data.frame")
-  expect_error(exp_profiling(profiling_exp_data[, 1], plotly=TRUE))
-  result_plotly <- exp_profiling(profiling_exp_data, plotly=TRUE)
-  expect_s3_class(result_plotly$i.expr.lip, "plotly")
-  expect_s3_class(result_plotly$i.p.amount, "plotly")
-  expect_s3_class(result_plotly$p.hist.value, "plotly")
-  result_ggplot <- exp_profiling(profiling_exp_data, plotly=FALSE)
-  expect_s3_class(result_ggplot$i.expr.lip, "ggplot")
-  expect_s3_class(result_ggplot$i.p.amount, "ggplot")
-  expect_s3_class(result_ggplot$p.hist.value, "ggplot")
+    expect_s4_class(profiling_data, "SummarizedExperiment")
+    ## conduct profiling function
+    exp_profiling_result <- exp_profiling(profiling_data, char_var[1])
+    ## test output
+    expect_s4_class(exp_profiling_result$tot.num.lip, "SummarizedExperiment")
+    expect_s4_class(exp_profiling_result$dens.lip, "SummarizedExperiment")
+    expect_s4_class(
+        exp_profiling_result$exp.compo.by.lipid, "SummarizedExperiment")
 })
