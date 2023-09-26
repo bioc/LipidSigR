@@ -5,7 +5,7 @@
 \title{data_process}
 \usage{
 data_process(
-  exp_data,
+  exp_data_SE,
   exclude_var_missing = TRUE,
   missing_pct_limit = 50,
   replace_zero = TRUE,
@@ -22,10 +22,15 @@ data_process(
 )
 }
 \arguments{
-\item{exp_data}{A data frame of predictors, including features
-(molecule, lipid class, etc.) and their expression of each sample.
-NAs are not allowed. The name of the first column must be "feature"
-(lipid species).}
+\item{exp_data_SE}{A SummarizedExperiment object contains information about
+various features, such as molecules, lipid class, etc., and their
+expression levels for each sample. The assay is a matrix representing the
+expression of lipid features across all samples. Missing values (NAs)  are
+allowed. The row data  corresponds to specific lipid features, such as class
+and total length. The first column's name must be "feature" (lipid species),
+and NAs are allowed for this data. The column data comprises sample names,
+sample labels, group names, and pair numbers that represent 'the pair' for
+conducting t-tests or Wilcoxon tests. NAs are allowed.}
 
 \item{exclude_var_missing}{Logical. Remove Lipid with too many
 missing values. (default: TRUE)}
@@ -61,11 +66,11 @@ shifted to be zero centered. Alternately, a vector of length equal to
 the number of columns of x can be supplied. The value is passed to scale.
 (default: FALSE)}
 
-\item{scaling}{A logical value. If scaling = TRUE, each block is standardized
-to zero means and unit variances. (default: FALSE).}
+\item{scaling}{A logical value. If scaling = TRUE, each block is
+standardized to zero means and unit variances. (default: FALSE).}
 }
 \value{
-Return a list of 1 data frame.
+Return a SummarizedExperiment object.
 }
 \description{
 This function conducts data processing according to users'
@@ -73,11 +78,10 @@ This function conducts data processing according to users'
     imputation, percentage transformation, log10 transformation, etc.
 }
 \examples{
-data("DE_exp_data")
-exp_data <- DE_exp_data
-data_process(exp_data, exclude_var_missing=TRUE, missing_pct_limit=50,
-             replace_zero=TRUE,
-             zero2what='min', xmin=0.5, replace_NA=TRUE, NA2what='min',
-             ymin=0.5, pct_transform=TRUE, data_transform=TRUE,
-             trans_type='log', centering=FALSE, scaling=FALSE)
+data("DE_data")
+exp_data_SE <- DE_data
+data_process(exp_data_SE, exclude_var_missing=TRUE, missing_pct_limit=50,
+    replace_zero=TRUE, zero2what='min', xmin=0.5, replace_NA=TRUE,
+    NA2what='min', ymin=0.5, pct_transform=TRUE, data_transform=TRUE,
+    trans_type='log', centering=FALSE, scaling=FALSE)
 }

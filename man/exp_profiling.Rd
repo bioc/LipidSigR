@@ -4,40 +4,46 @@
 \alias{exp_profiling}
 \title{exp_profiling}
 \usage{
-exp_profiling(exp_data, plotly = TRUE)
+exp_profiling(exp_data_SE, char_var = NULL)
 }
 \arguments{
-\item{exp_data}{A data frame of predictors, including
-features (molecule, lipid class, etc.) and their expression of each sample.
-NAs are not allowed. The name of the first column must be
-"feature" (lipid species).}
+\item{exp_data_SE}{A SummarizedExperiment object contains information about
+various features, such as molecules, lipid class, etc., and their
+expression levels for each sample. The assay is a matrix representing the
+expression of lipid features across all samples. Missing values (NAs)  are
+allowed. The row data  corresponds to specific lipid features, such as class
+and total length. The first column's name must be "feature" (lipid species),
+and NAs are allowed for this data. The column data comprises sample names,
+sample labels, group names, and pair numbers that represent 'the pair' for
+conducting t-tests or Wilcoxon tests. NAs are allowed.}
 
-\item{plotly}{Logical value. If TRUE, return the resulting plots dynamically.}
+\item{char_var}{A character string of the first lipid characteristic
+selected by users from the column name of the rowData of \bold{exp_data_SE},
+such as total length.}
 }
 \value{
-Return 3 plots.
+Return a list with 3 SummarizedExperiment objects.
 \enumerate{
-\item histogram of number of expressed lipids.
-\item histogram of the total amount of lipid in each sample.
-\item density plot of the underlying probability distribution of the
-lipid expression in each sample.
+\item tot.num.lip: number of expressed lipids and total amount of lipid in
+each sample.
+\item dens.lip: the underlying probability distribution of the lipid
+expression in each sample.
+\item exp.compo.by.lipid: the expression level of each sample within each
+group (e.g., PE, PC) of selected characteristics (e.g., class).
 }
 }
 \description{
-This function three types of distribution plots for users to a
-simple view of sample variability, and compare the amount/expression
-difference of lipid between samples (i.e., patients vs. control).
-\enumerate{
-\item The first histogram depicts the numbers of lipids expressed in
-each sample.
-\item The second histogram illustrates the total amount of lipid in
-each sample.
-\item The last density plot visualizes the underlying
-probability distribution of the lipid expression in each sample (line).
-}
+This function provides a simple view of sample variability, and
+compare the amount/expression difference of lipid between samples (i.e.,
+patients vs. control). The returned tables can be further applied for
+plotting.
 }
 \examples{
-data("profiling_exp_data")
-exp_data <- profiling_exp_data
-exp_profiling(exp_data, plotly=TRUE)
+library(dplyr)
+library(SummarizedExperiment)
+data("profiling_data")
+exp_data_SE <- profiling_data
+lipid_char_table <- as.data.frame(rowData(exp_data_SE))
+char_var <- colnames(lipid_char_table)[-1]
+exp_profiling(exp_data_SE, char_var[1])
 }

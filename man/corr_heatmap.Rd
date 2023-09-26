@@ -5,18 +5,23 @@
 \title{corr_heatmap}
 \usage{
 corr_heatmap(
-  exp_data,
+  exp_data_SE,
   corr_method = "pearson",
   distfun = "maximum",
   hclustfun = "average",
-  plotly = TRUE,
   type = "sample"
 )
 }
 \arguments{
-\item{exp_data}{A data frame of predictors, including features
-(molecule, lipid class, etc.) and their expression of each sample. NAs are
-not allowed. The name of the first column must be "feature" (lipid species).}
+\item{exp_data_SE}{A SummarizedExperiment object contains information about
+various features, such as molecules, lipid class, etc., and their
+expression levels for each sample. The assay is a matrix representing the
+expression of lipid features across all samples. Missing values (NAs)  are
+allowed. The row data  corresponds to specific lipid features, such as class
+and total length. The first column's name must be "feature" (lipid species),
+and NAs are allowed for this data. The column data comprises sample names,
+sample labels, group names, and pair numbers that represent 'the pair' for
+conducting t-tests or Wilcoxon tests. NAs are allowed.}
 
 \item{corr_method}{A character string indicating which correlation
 coefficient is to be computed. One of "pearson" or
@@ -32,22 +37,12 @@ This should be (an unambiguous abbreviation of) one of "ward.D", "ward.D2",
 "single", "complete", "average" (= UPGMA), "mcquitty" (= WPGMA),
 "median" (= WPGMC) or "centroid" (= UPGMC). (default: "average")}
 
-\item{plotly}{Logical value. If TRUE, return the resulting plots dynamically.}
-
 \item{type}{It should be 'sample' or 'lipid.' 'sample' outputs the
 correlation results of samples, and 'lipid' outputs output the correlation
 results of lipid species.}
 }
 \value{
-Return 1 plot and a list of 3 matrices.
-\enumerate{
-\item corr_coef: a matrix of correlation coefficients between samples
-or lipids.
-\item corr_p: a matrix of correlation p-value between samples or lipids.
-\item heatmap: a heatmap plot by samples or lipid species.
-\item reorder_data: a reorder sample or lipids correlation coefficients
-matrix.
-}
+Return a SummarizedExperiment object.
 }
 \description{
 The correlation heatmap illustrates the correlation between
@@ -61,15 +56,12 @@ lipid species or samples.
 }
 }
 \examples{
-data("profiling_exp_data")
-exp_data <- profiling_exp_data[1:50, ]
-exp_transform <- data_process(exp_data, exclude_var_missing=TRUE,
-                              missing_pct_limit=50,
-                              replace_zero=TRUE, zero2what='min',
-                              xmin=0.5, replace_NA=TRUE,
-                              NA2what='min', ymin=0.5, pct_transform=TRUE,
-                              data_transform=TRUE, trans_type='log',
-                              centering=FALSE, scaling=FALSE)
-corr_heatmap(exp_transform, corr_method="pearson", distfun="maximum",
-             hclustfun="average", plotly=TRUE, type='sample')
+data("profiling_data")
+exp_data_SE <- profiling_data
+exp_transform_SE <- data_process(exp_data_SE, exclude_var_missing=TRUE,
+    missing_pct_limit=50, replace_zero=TRUE, zero2what='min', xmin=0.5,
+    replace_NA=TRUE, NA2what='min', ymin=0.5, pct_transform=TRUE,
+    data_transform=TRUE, trans_type='log', centering=FALSE, scaling=FALSE)
+corr_heatmap(exp_transform_SE, corr_method="pearson", distfun="maximum",
+    hclustfun="average",type='sample')
 }

@@ -4,34 +4,34 @@
 \alias{Species2Char}
 \title{Species2Char}
 \usage{
-Species2Char(exp_data, lipid_char_table, char_var)
+Species2Char(exp_data_SE, char_var)
 }
 \arguments{
-\item{exp_data}{A data frame of predictors, including features
-(molecule, lipid class, etc.) and their expression of each sample. NAs are
-not allowed. The name of the first column must be "feature" (lipid species).}
+\item{exp_data_SE}{A SummarizedExperiment object contains information about
+various features, such as molecules, lipid class, etc., and their
+expression levels for each sample. The assay is a matrix representing the
+expression of lipid features across all samples. Missing values (NAs)  are
+allowed. The row data  corresponds to specific lipid features, such as class
+and total length. The first column's name must be "feature" (lipid species),
+and NAs are allowed for this data. The column data comprises sample names,
+sample labels, group names, and pair numbers that represent 'the pair' for
+conducting t-tests or Wilcoxon tests. NAs are allowed.}
 
-\item{lipid_char_table}{A data frame of lipid characteristics such as
-name(feature) of lipid, class of lipid, the total length of lipid, and
-Fatty acid (FA_) related characteristics. NAs are allowed. The name of the
-first column must be "feature" (lipid species).}
-
-\item{char_var}{A character string of the lipid characteristic selected by
-users from the column name of \bold{lipid_char_table}, such as 'class'}
+\item{char_var}{A character string of the first lipid characteristic
+selected by users from the column name of the rowData of \bold{exp_data_SE},
+such as total length.}
 }
 \value{
-Return \bold{transform_table}. An data frame of aggregated(sum)
-expression data by user-selected characteristics (\bold{char_var}).
+Return a SummarizedExperiment object.
 }
 \description{
-Summary the expression in \bold{exp_data} from lipid species
+Summary the expression in \bold{exp_data_SE} from lipid species
 to user-selected characteristics.
 }
 \examples{
-data("DE_exp_data")
-data("DE_lipid_char_table")
-exp_data <- DE_exp_data
-lipid_char_table <- DE_lipid_char_table
+data("DE_data")
+exp_data_SE <- DE_data
+lipid_char_table <- as.data.frame(SummarizedExperiment::rowData(exp_data_SE))
 char_var <- colnames(lipid_char_table)[-1]
-Species2Char(exp_data, lipid_char_table, char_var=char_var[1])
+Species2Char(exp_data_SE, char_var=char_var[1])
 }

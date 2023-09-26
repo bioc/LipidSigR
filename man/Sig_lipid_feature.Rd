@@ -4,43 +4,31 @@
 \alias{Sig_lipid_feature}
 \title{Sig_lipid_feature}
 \usage{
-Sig_lipid_feature(
-  DE_species_table_sig,
-  lipid_char_table,
-  char_var,
-  sig_FC = 2,
-  plotly = TRUE
-)
+Sig_lipid_feature(DE_result_sig, exp_transform_SE, char_var, sig_FC = 2)
 }
 \arguments{
-\item{DE_species_table_sig}{A data frame comprises the significant results
-of differential expression analysis, including fold change, p-value,
-adjusted p-value. The output of \code{\link{DE_species_2}}.}
+\item{DE_result_sig}{A SummarizedExperiment object comprises the significant
+results of differential expression analysis, including fold change, p-value,
+adjusted p-value. The output of \code{\link{DE_species}}.}
 
-\item{lipid_char_table}{A data frame. NAs are allowed. The name of
-first column must be "feature".A data frame with lipid features,
-such as class, total length. NAs are allowed. The name of the
-first column must be "feature".}
+\item{exp_transform_SE}{A SummarizedExperiment object contains information
+about various features, such as molecules, lipid class, etc., and their
+expression levels for each sample. The assay is a matrix representing the
+expression of lipid features across all samples. Missing values (NAs)  are
+not allowed. The row data corresponds to specific lipid features, such as
+class and total length. The first column's name must be "feature" (lipid
+species), and NAs are allowed for this data. The column data comprises sample
+names, sample labels, group names, and pair numbers that represent
+'the pair' for conducting t-tests or Wilcoxon tests. NAs are allowed.}
 
 \item{char_var}{A character string of the first lipid characteristic
-selected by users from the column name of \bold{lipid_char_table},
+selected by users from the column name of the rowData of \bold{exp_data_SE},
 such as total length.}
 
 \item{sig_FC}{Numeric. Significance of the fold-change. (default: 2)}
-
-\item{plotly}{Logical value. If TRUE, return the resulting plots dynamically.}
 }
 \value{
-Return a list with 3 figures.
-\enumerate{
-\item a bar chart shows the significant groups (values) with
-mean fold change over 2 in the selected characteristics by colors
-\item a lollipop plot to compare multiple values simultaneously and
-it aligns the log2(fold change) of all significant groups(values) within
-the selected characteristics
-\item a word cloud of the count of each group(value) of the
-selected characteristics
-}
+Return a list with 2 SummarizedExperiment object.
 }
 \description{
 \code{\link{Sig_lipid_feature}} shows the significant
@@ -51,36 +39,22 @@ log2 Fold Change.
 \examples{
 library(magrittr)
 library(dplyr)
-data("DE_exp_data")
-data("DE_lipid_char_table")
-data("DE_group_info")
-exp_data <- DE_exp_data
-lipid_char_table <- DE_lipid_char_table
-group_info <- DE_group_info
-exp_transform <- data_process(exp_data, exclude_var_missing=TRUE,
-                              missing_pct_limit=50, replace_zero=TRUE,
-                              zero2what='min', xmin=0.5, replace_NA=TRUE,
-                              NA2what='min', ymin=0.5, pct_transform=TRUE,
-                              data_transform=TRUE, trans_type='log',
-                              centering=FALSE,  scaling=FALSE)
-exp_transform_non_log <- data_process(exp_data, exclude_var_missing=FALSE,
-                                      missing_pct_limit=50,
-                                      replace_zero=TRUE, zero2what='min',
-                                      xmin=0.5, replace_NA=TRUE,
-                                      NA2what='min', ymin=0.5,
-                                      pct_transform=TRUE,
-                                      data_transform=FALSE, trans_type='log',
-                                      centering=FALSE, scaling=FALSE)
-lipid_char_filter <- lipid_char_table \%>\%
-    filter(feature \%in\% exp_transform_non_log$feature)
-char_var <- colnames(lipid_char_filter)[-1]
-DE_species_table_sig <- DE_species_2(exp_transform_non_log,
-                                     data_transform=TRUE,
-                                     group_info=group_info, paired=FALSE,
-                                     test='t.test', adjust_p_method='BH',
-                                     sig_stat='p.adj', sig_pvalue=0.05,
-                                     sig_FC=2,
-                                     plotly=TRUE)$DE_species_table_sig
-Sig_lipid_feature(DE_species_table_sig, lipid_char_filter,
-                  char_var[1], sig_FC=2, plotly=TRUE)
+library(SummarizedExperiment)
+data("DE_data")
+exp_data_SE <- DE_data
+exp_transform_SE <- data_process(exp_data_SE, exclude_var_missing=TRUE,
+    missing_pct_limit=50, replace_zero=TRUE, zero2what='min', xmin=0.5,
+    replace_NA=TRUE, NA2what='min', ymin=0.5, pct_transform=TRUE,
+    data_transform=TRUE, trans_type='log', centering=FALSE, scaling=FALSE)
+exp_transform_non_log <- data_process(exp_data_SE, exclude_var_missing=TRUE,
+    missing_pct_limit=50, replace_zero=TRUE, zero2what='min', xmin=0.5,
+    replace_NA=TRUE, NA2what='min', ymin=0.5, pct_transform=TRUE,
+    data_transform=FALSE, trans_type='log', centering=FALSE, scaling=FALSE)
+DE_species_result <- DE_species(exp_transform_non_log, data_transform=TRUE,
+    paired=FALSE, test='t.test', adjust_p_method='BH', sig_stat='p.adj',
+    sig_pvalue=0.05, sig_FC=2)
+lipid_char_table <- as.data.frame(rowData(exp_transform_SE))
+char_var <- colnames(lipid_char_table)[-1]
+DE_result_sig <- DE_species_result$exp_data_stat_sig
+Sig_lipid_feature(DE_result_sig, exp_transform_SE, char_var[1], sig_FC=2)
 }
